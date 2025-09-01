@@ -1,120 +1,98 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="th">
 <head>
-  <meta charset="utf-8">
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบเช็คชื่อเข้าเรียน</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-  <style>
-    body { background: #0f223a url('https://i.imgur.com/iqr3S6P.jpeg') no-repeat center/cover fixed; }
-    .app-card { background: #fff; border-radius: 18px; box-shadow: 0 10px 30px rgba(0,0,0,.15); }
-    .glass { background: rgba(255,255,255,.15); backdrop-filter: blur(10px); border-radius: 18px; }
-    .badge.rounded-pill { font-size: .85rem; }
-  </style>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-  <div class="container py-4">
-    <!-- Header -->
-    <div class="glass p-3 mb-4 text-white">
-      <div class="d-flex align-items-center gap-3">
-        <div class="rounded-circle bg-white" style="width:54px;height:54px;"></div>
-        <div>
-          <h4 class="m-0">ระบบเช็คชื่อเข้าเรียน</h4>
-          <small>โรงเรียนสารสนเทศจินภควรฉัตถ์ · ตัดสายเวลา {{ cutoff }}</small>
-        </div>
-        <div class="ms-auto d-flex gap-2">
-          <a class="btn btn-sm btn-light" href="{{ url_for('export_xlsx', scope=scope) }}">ดาวน์โหลด Excel</a>
-          <a class="btn btn-sm btn-outline-light" href="{{ url_for('index', scope=scope) }}">รีเฟรชหน้า</a>
-        </div>
+
+  <!-- Appbar -->
+  <div class="appbar">
+    <div class="appbar-left">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" class="logo" alt="logo">
+      <div>
+        <div class="brand">ระบบเช็คชื่อเข้าเรียน</div>
+        <div class="subbrand">โรงเรียนสารสาสน์วิเทศรังสิต - ตัดสายเวลา 08:35</div>
       </div>
     </div>
+    <div class="appbar-actions">
+      <a href="#" class="btn ghost">ดาวน์โหลด Excel</a>
+      <a href="#" class="btn ghost">รีเฟรชหน้า</a>
+    </div>
+  </div>
 
-    <!-- Main grid -->
-    <div class="row g-4">
-      <!-- Left: form -->
-      <div class="col-lg-7">
-        <div class="app-card p-4">
-          <h5 class="mb-3">เช็คชื่อเข้าเรียน</h5>
-          <form method="post" action="{{ url_for('checkin') }}" class="vstack gap-3">
-            <div>
-              <label class="form-label">รหัสนักเรียน</label>
-              <input name="student_id" class="form-control form-control-lg" placeholder="เช่น 6512345678" required>
-            </div>
-            <div>
-              <label class="form-label">ชื่อ – นามสกุล</label>
-              <input name="name" class="form-control form-control-lg" placeholder="เช่น สมชาย ใจดี" required>
-            </div>
-            <div class="d-flex gap-2">
-              <button class="btn btn-primary btn-lg px-4">บันทึกเช็คชื่อ</button>
-              <button type="reset" class="btn btn-outline-secondary btn-lg">ล้างฟอร์ม</button>
-            </div>
-          </form>
-        </div>
+  <!-- Content -->
+  <div class="container">
+    <div class="grid">
+      <!-- Check-in Form -->
+      <div class="card">
+        <div class="card-title">เช็คชื่อเข้าเรียน</div>
+        <form class="form">
+          <div class="field">
+            <span>รหัสนักเรียน</span>
+            <input type="text" placeholder="เช่น 6512345678">
+          </div>
+          <div class="field">
+            <span>ชื่อ – นามสกุล</span>
+            <input type="text" placeholder="เช่น สมชาย ใจดี">
+          </div>
+          <div class="actions">
+            <button type="submit" class="btn primary">บันทึกเช็คชื่อ</button>
+            <button type="reset" class="btn ghost">ล้างฟอร์ม</button>
+          </div>
+        </form>
       </div>
 
-      <!-- Right: QR -->
-      <div class="col-lg-5">
-        <div class="app-card p-4">
-          <h5 class="mb-3">สแกนเช็คชื่อด้วย QR</h5>
-          <div class="border rounded d-flex justify-content-center align-items-center p-3" style="min-height:320px;">
-            <img src="{{ qr_image_url }}" alt="QR" class="img-fluid" style="max-width:260px;">
-          </div>
-          <div class="small text-muted mt-2">
-            <ul class="m-0 ps-3">
-              <li>ใช้เฉพาะนักเรียนที่อยู่ในห้องเรียนเท่านั้น</li>
-              <li>กรอกข้อมูลตามจริง หากตรวจพบความผิดปกติจะถือว่า “ขาด”</li>
-              <li>ระบบตัด “มาสาย” หากเช็คหลังเวลา {{ cutoff }}</li>
-            </ul>
-          </div>
+      <!-- QR Code -->
+      <div class="card">
+        <div class="card-title">สแกนเช็คชื่อด้วย QR</div>
+        <div class="qr-wrap">
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://sarasas-checkin.onrender.com" class="qr" alt="QR Code">
+          <div class="qr-caption">https://sarasas-checkin.onrender.com</div>
         </div>
+        <ul class="note">
+          <li>ใช้เฉพาะนักเรียนที่อยู่ในห้องเรียนเท่านั้น</li>
+          <li>กรอกข้อมูลตามจริง หากตรวจพบความผิดปกติจะถือว่า “ขาด”</li>
+          <li>ระบบจะบันทึก “มาสาย” หากเช็คหลังเวลา <b>08:35</b></li>
+        </ul>
       </div>
     </div>
 
     <!-- Table -->
-    <div class="app-card p-3 mt-4">
-      <div class="d-flex align-items-center">
-        <h5 class="m-0">รายการเช็คชื่อล่าสุด (วันที่ {{ today }})</h5>
-        <div class="ms-auto d-flex gap-2">
-          <a class="btn btn-outline-primary btn-sm {% if scope!='all' %}active{% endif %}" href="{{ url_for('index') }}">ดูวันนี้</a>
-          <a class="btn btn-outline-primary btn-sm {% if scope=='all' %}active{% endif %}" href="{{ url_for('index', scope='all') }}">ดูทั้งหมด</a>
-          <form method="post" action="{{ url_for('reset_today') }}" onsubmit="return confirm('ลบรายการของวันนี้ทั้งหมด?')">
-            <button class="btn btn-warning btn-sm">เริ่มวันใหม่ (ลบรายการวันนี้)</button>
-          </form>
-          <form method="post" action="{{ url_for('reset_all') }}" onsubmit="return confirm('ลบข้อมูลทั้งหมด?')">
-            <button class="btn btn-danger btn-sm">ลบข้อมูลทั้งหมด</button>
-          </form>
+    <div class="card table-card" style="margin-top:24px;">
+      <div class="table-head">
+        <div class="card-title">รายการเช็คชื่อล่าสุด (วันที่ {{ today }})</div>
+        <div>
+          <a href="#" class="chip">ดูทั้งหมด</a>
+          <a href="#" class="chip danger">เริ่มวันใหม่</a>
+          <a href="#" class="chip danger">ลบข้อมูลทั้งหมด</a>
         </div>
       </div>
-
-      <div class="table-responsive mt-3">
-        <table class="table table-hover align-middle">
-          <thead class="table-light">
-          <tr>
-            <th>รหัสนักเรียน</th>
-            <th>ชื่อ - นามสกุล</th>
-            <th style="width:120px">วันที่</th>
-            <th style="width:120px">เวลา</th>
-            <th style="width:120px">สถานะ</th>
-          </tr>
+      <div class="table-responsive">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>รหัสนักเรียน</th>
+              <th>ชื่อ - นามสกุล</th>
+              <th>วันที่</th>
+              <th>เวลา</th>
+              <th>สถานะ</th>
+            </tr>
           </thead>
           <tbody>
-          {% for r in rows %}
-            <tr>
-              <td>{{ r.student_id }}</td>
-              <td>{{ r.name }}</td>
-              <td>{{ r.date }}</td>
-              <td>{{ r.time }}</td>
-              <td><span class="badge rounded-pill text-bg-{{ r._badge }}">{{ r.status }}</span></td>
-            </tr>
-          {% else %}
-            <tr><td colspan="5" class="text-center text-muted">ยังไม่มีข้อมูล</td></tr>
-          {% endfor %}
+            <tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>
           </tbody>
         </table>
       </div>
     </div>
-
-    <div class="text-center text-white-50 small mt-3">© ระบบเช็คชื่อ</div>
   </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    © ระบบเช็คชื่อ - โรงเรียนสารสาสน์วิเทศรังสิต
+  </div>
+
 </body>
 </html>

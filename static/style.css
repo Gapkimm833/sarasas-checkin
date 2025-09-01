@@ -1,0 +1,143 @@
+@import url('https://fonts.googleapis.com/css2?family=Kanit:wght@400;600;700&display=swap');
+
+:root {
+  --bg: #0d47a1;
+  --bg2: #1565c0;
+  --card: rgba(255, 255, 255, 0.95);
+  --text: #1a237e;
+  --muted: #546e7a;
+  --primary: #1976d2;
+  --primary-2: #0d47a1;
+  --chip: #e3f2fd;
+  --danger: #e53935;
+  --ok: #43a047;
+  --late: #fbc02d;
+  --shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  --radius: 12px;
+}
+
+body {
+  margin: 0;
+  font-family: "Kanit", sans-serif;
+  background: linear-gradient(180deg, var(--bg), var(--bg2));
+  color: var(--text);
+}
+
+/* Appbar */
+.appbar {
+  background: var(--primary);
+  color: #fff;
+  padding: 14px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  box-shadow: var(--shadow);
+}
+.appbar-left {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.logo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.brand {
+  font-weight: 700;
+  font-size: 1.2rem;
+}
+.subbrand {
+  font-size: 0.9rem;
+  color: #e3f2fd;
+}
+.appbar-actions .btn {
+  margin-left: 8px;
+}
+
+/* Container */
+.container {
+  padding: 20px;
+  max-width: 1200px;
+  margin: auto;
+}
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 20px;
+}
+
+/* Card */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+}
+.card-title {
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+/* Form */
+.field {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+.field span {
+  font-size: 0.9rem;
+  margin-bottom: 4px;
+}
+input {
+  padding: 10px;
+  border-radius: var(--radius);
+  border: 1px solid #ccc;
+}
+.actions {
+  display: flex;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+/* Buttons */
+.btn {
+  padding: 10px 16px;
+  border-radius: var(--radius);
+  text-decoration: none;
+  border: none;
+  cursor: pointer;
+}
+.btn.primary {
+  background: var(--primary);
+  color: #fff;
+}
+.btn.ghost {
+  background: transparent;
+  border: 1px solid #ccc;
+  color: var(--text);
+}
+
+/* Table */
+.table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.table th, .table td {
+  border: 1px solid #ccc;
+  padding: 8px;
+  text-align: center;
+}
+.empty {
+  text-align: center;
+  padding: 20px;
+}
+
+/* Footer */
+.footer {
+  text-align: center;
+  color: #fff;
+  margin-top: 20px;
+  padding: 10px;
+}

@@ -1,7 +1,21 @@
-.venv/
+# Python
 __pycache__/
 *.pyc
+
+# Virtualenv
+.venv/
+venv/
+
+# Logs / temp
 *.log
+*.tmp
+
+# Local DB / Data
 *.db
+*.sqlite
 *.xlsx
-.env
+
+# OS/editor
+.DS_Store
+Thumbs.db
+.vscode/
