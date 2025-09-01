@@ -2,20 +2,15 @@
 __pycache__/
 *.pyc
 
-# Virtualenv
+# Local venv
 .venv/
 venv/
 
-# Logs / temp
-*.log
-*.tmp
-
-# Local DB / Data
+# Databases & exports
 *.db
 *.sqlite
 *.xlsx
 
-# OS/editor
+# OS junk
 .DS_Store
 Thumbs.db
-.vscode/
