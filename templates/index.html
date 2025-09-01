@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="th">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>เช็คชื่อเข้าเรียน • สารสาสน์วิเทศรังสิต</title>
+
+  <!-- ฟอนต์ไทย -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@300;400;600&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --primary:#0f2a59;     /* น้ำเงินกรมท่า */
+      --primary-600:#0b2147;
+      --accent:#f0b600;      /* เหลืองทอง */
+      --surface:#fff;
+      --muted:#f5f7fb;
+      --ok:#16a34a;
+      --late:#dc2626;
+    }
+    *{box-sizing:border-box}
+    body {
+      margin:0;
+      font-family:"Kanit",sans-serif;
+      color:#0f172a;
+      background: linear-gradient(135deg, #0f2a59 0%, #274a8a 40%, #f6f9ff 100%);
+      min-height:100vh;
+    }
+    .container { max-width:1100px; margin:20px auto; padding:0 16px; }
+
+    /* Header */
+    .hero {
+      background: linear-gradient(90deg, #0f2a59 0%, #274a8a 100%);
+      border-radius:20px;
+      padding:16px;
+      box-shadow:0 12px 36px rgba(0,0,0,.25);
+      display:flex; gap:16px; align-items:center;
+      color:#fff;
+    }
+    .logo {
+      width:70px; height:70px; border-radius:50%;
+      background:#fff url("/static/logo.png") center/contain no-repeat;
+      border:2px solid #f0b600;
+      box-shadow:0 4px 10px rgba(0,0,0,.25);
+      flex-shrink:0;
+    }
+    .title h1 { margin:0; font-size:22px; color:#fff; font-weight:700; }
+    .title p { margin:4px 0 0; color:#e2e8f0; font-size:14px; }
+
+    /* Toolbar */
+    .toolbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin:14px 0}
+    .chip{padding:6px 10px;border-radius:999px;background:#fff;border:1px solid #e5e7eb;
+          box-shadow:0 2px 10px rgba(15,42,89,.06);font-size:13px;color:#334155}
+    .btn{display:inline-flex;gap:8px;align-items:center;padding:10px 14px;border-radius:12px;
+         background:var(--primary);color:#fff;text-decoration:none;border:1px solid var(--primary-600);
+         box-shadow:0 10px 26px rgba(15,42,89,.18);font-weight:600}
+    .btn:hover{background:var(--primary-600)}
+    .btn-ghost{background:#fff;color:var(--primary);border:1px solid var(--primary);
+               box-shadow:0 6px 18px rgba(15,42,89,.08)}
+
+    /* Layout */
+    .grid{display:grid;grid-template-columns:1fr;gap:16px}
+    @media(min-width:920px){.grid{grid-template-columns:1.05fr .95fr}}
+    .card{background:var(--surface);border:1px solid #e5e7eb;border-radius:18px;
+          padding:16px;box-shadow:0 10px 34px rgba(15,42,89,.1)}
+
+    /* Form */
+    .field{margin:12px 0}
+    label{display:block;margin-bottom:6px;color:#334155;font-size:14px}
+    input[type="text"]{width:100%;padding:12px 14px;border:1px solid #cbd5e1;border-radius:12px;
+                       background:#fff;font-size:15px}
+    input[type="text"]:focus{border-color:var(--primary);box-shadow:0 0 0 3px rgba(15,42,89,.2)}
+    .actions{display:flex;gap:10px;align-items:center;margin-top:10px;flex-wrap:wrap}
+
+    /* Table */
+    table{width:100%;border-collapse:collapse;margin-top:6px}
+    th,td{padding:10px;border-bottom:1px solid #e5e7eb;font-size:14px;text-align:left}
+    th{background:var(--muted);color:#334155}
+    tr:hover td{background:#fafafa}
+    .badge{padding:4px 8px;border-radius:999px;font-size:12px;font-weight:700;color:#fff}
+    .badge.ok{background:var(--ok)} .badge.late{background:var(--late)}
+    .empty{padding:16px;text-align:center;color:#94a3b8}
+
+    /* Right panel */
+    .notice{background:linear-gradient(180deg,#fff7e6,#fff);border:1px dashed #f59e0b;color:#92400e;
+            border-radius:14px;padding:12px;font-size:13px}
+    .qr{display:flex;align-items:center;justify-content:center;text-align:center;background:#f8fafc;
+        border:1px dashed #cbd5e1;border-radius:14px;flex-direction:column;gap:8px;height:220px}
+
+    footer{margin:18px 0 8px;color:#e2e8f0;font-size:12px;text-align:center}
+  </style>
+</head>
+<body>
+  <div class="logo">
+ <img src="{{ url_for('static', filename='logo.jpg') }}"
+     alt="โลโก้โรงเรียน"
+     style="width:100%;height:100%;border-radius:50%;object-fit:cover;">
+
+</div>
+
+    </header>
+
+
+    <!-- Toolbar -->
+    <div class="toolbar">
+      <div class="chip">สถานะคาบเรียน : <b>เปิดรับเช็คชื่อ</b></div>
+      <a class="btn" href="/export">📥 ดาวน์โหลด Excel</a>
+      <a class="btn btn-ghost" href="/">รีเฟรชหน้า</a>
+    </div>
+
+    <!-- Content -->
+    <div class="grid">
+      <!-- Form -->
+      <section class="card">
+        <h2>เช็คชื่อเข้าเรียน</h2>
+        <form action="/checkin" method="POST" autocomplete="off">
+          <div class="field">
+            <label>รหัสนักเรียน</label>
+            <input type="text" name="student_id" required placeholder="เช่น 6512345678" inputmode="numeric" />
+          </div>
+          <div class="field">
+            <label>ชื่อ – นามสกุล</label>
+            <input type="text" name="student_name" required placeholder="เช่น สมชาย ใจดี" />
+          </div>
+          <div class="actions">
+            <button class="btn" type="submit">บันทึกเช็คชื่อ</button>
+            <a class="btn btn-ghost" href="/">ล้างฟอร์ม</a>
+          </div>
+        </form>
+      </section>
+
+      <!-- QR -->
+      <aside class="card">
+        <h2>สแกนเช็คชื่อด้วย QR</h2>
+        <div id="qrBox" class="qr">กำลังโหลด QR ...</div>
+        <div class="notice">
+          • ใช้เฉพาะนักเรียนที่อยู่ในห้องเรียนเท่านั้น<br/>
+          • กรอกข้อมูลตามจริง หากตรวจพบความผิดปกติจะถือว่า “ขาด”<br/>
+          • ระบบจะนับ “มาสาย” หากเช็คหลังเวลา <b>{{ cutoff_str }}</b>
+        </div>
+      </aside>
+    </div>
+
+    <!-- Table -->
+    <section class="card" style="margin-top:16px;">
+      <div style="display:flex;align-items:center;gap:10px;justify-content:space-between;flex-wrap:wrap;">
+        <h2>รายการเช็คชื่อล่าสุด (วันที่ {{ today }})</h2>
+        <div style="display:flex;gap:10px;align-items:center;">
+          <a class="btn btn-ghost" href="/?all=1">ดูทั้งหมด</a>
+          <form action="/clear_today" method="POST" onsubmit="return confirm('ลบรายการเช็คชื่อของวันนี้ทั้งหมดใช่ไหม?');">
+            <button class="btn btn-ghost" type="submit" style="border-color:#dc2626;color:#dc2626;">เริ่มวันใหม่ (ลบรายการวันนี้)</button>
+          </form>
+          <form action="/clear_all" method="POST" onsubmit="return confirm('ลบทุกรายการทั้งหมด (กู้คืนไม่ได้) แน่ใจหรือไม่?');">
+            <button class="btn btn-ghost" type="submit" style="border-color:#b91c1c;color:#b91c1c;">ลบข้อมูลทั้งหมด</button>
+          </form>
+        </div>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th style="width:140px;">รหัสนักเรียน</th>
+            <th>ชื่อ - นามสกุล</th>
+            <th style="width:140px;">วันที่</th>
+            <th style="width:120px;">เวลา</th>
+            <th style="width:110px;">สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if records and records|length > 0 %}
+            {% for r in records %}
+              <tr>
+                <td>{{ r.student_id }}</td>
+                <td>{{ r.student_name }}</td>
+                <td>{{ r.checkin_date }}</td>
+                <td>{{ r.checkin_time }}</td>
+                <td>
+                  {% if r.status == 'Present' %}<span class="badge ok">มาเรียน</span>
+                  {% else %}<span class="badge late">มาสาย</span>{% endif %}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </section>
+
+    <footer>© ระบบเช็คชื่อ • โรงเรียนสารสาสน์วิเทศรังสิต</footer>
+  </div>
+
+  <!-- QR -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      const SERVER_ORIGIN = "{{ server_origin }}";
+      const sessionId = new Date().toISOString().slice(0,10).replace(/-/g,'');
+      const url = `${SERVER_ORIGIN}/?s=${sessionId}`;
+      const box = document.getElementById('qrBox');
+      box.innerHTML = '';
+      new QRCode(box, { text: url, width: 180, height: 180, correctLevel: QRCode.CorrectLevel.M });
+      const small = document.createElement('div');
+      small.style.fontSize='12px';
+      small.style.color='#64748b';
+      small.textContent=url;
+      box.appendChild(small);
+    });
+  </script>
+</body>
+</html>
