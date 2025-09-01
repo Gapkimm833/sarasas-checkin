@@ -1,23 +1,7 @@
-# Python
+.venv/
 __pycache__/
 *.pyc
-*.pyo
-*.pyd
-
-# Virtual environment
-.venv/
-venv/
-ENV/
-
-# SQLite database
+*.log
 *.db
-
-# Excel exports
 *.xlsx
-
-# VSCode
-.vscode/
-
-# System files
-.DS_Store
-Thumbs.db
+.env
