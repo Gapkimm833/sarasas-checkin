@@ -2,97 +2,87 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบเช็คชื่อเข้าเรียน</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-
-  <!-- Appbar -->
-  <div class="appbar">
-    <div class="appbar-left">
-      <img src="{{ url_for('static', filename='logo.jpg') }}" class="logo" alt="logo">
-      <div>
-        <div class="brand">ระบบเช็คชื่อเข้าเรียน</div>
-        <div class="subbrand">โรงเรียนสารสาสน์วิเทศรังสิต - ตัดสายเวลา 08:35</div>
-      </div>
+  <header class="navbar">
+    <div class="container">
+      <img src="{{ url_for('static', filename='logo.jpg') }}" alt="โลโก้โรงเรียน" class="logo">
+      <h1>ระบบเช็คชื่อเข้าเรียน</h1>
+      <span class="subtitle">โรงเรียนสารสาสน์วิเทศรังสิต - ตัดสายเวลา <b>08:35</b></span>
     </div>
-    <div class="appbar-actions">
-      <a href="#" class="btn ghost">ดาวน์โหลด Excel</a>
-      <a href="#" class="btn ghost">รีเฟรชหน้า</a>
-    </div>
-  </div>
+  </header>
 
-  <!-- Content -->
-  <div class="container">
+  <main class="container">
     <div class="grid">
-      <!-- Check-in Form -->
-      <div class="card">
-        <div class="card-title">เช็คชื่อเข้าเรียน</div>
-        <form class="form">
-          <div class="field">
-            <span>รหัสนักเรียน</span>
-            <input type="text" placeholder="เช่น 6512345678">
-          </div>
-          <div class="field">
-            <span>ชื่อ – นามสกุล</span>
-            <input type="text" placeholder="เช่น สมชาย ใจดี">
-          </div>
-          <div class="actions">
-            <button type="submit" class="btn primary">บันทึกเช็คชื่อ</button>
-            <button type="reset" class="btn ghost">ล้างฟอร์ม</button>
-          </div>
+      <!-- ฟอร์มเช็คชื่อ -->
+      <section class="card">
+        <h2>เช็คชื่อเข้าเรียน</h2>
+        <form method="POST">
+          <label for="student_id">รหัสนักเรียน</label>
+          <input type="text" name="student_id" placeholder="เช่น 6512345678" required>
+
+          <label for="name">ชื่อ - นามสกุล</label>
+          <input type="text" name="name" placeholder="เช่น สมชาย ใจดี" required>
+
+          <button type="submit" class="btn">บันทึกเช็คชื่อ</button>
+          <button type="reset" class="btn secondary">ล้างฟอร์ม</button>
         </form>
-      </div>
+      </section>
 
       <!-- QR Code -->
-      <div class="card">
-        <div class="card-title">สแกนเช็คชื่อด้วย QR</div>
-        <div class="qr-wrap">
-          <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data=https://sarasas-checkin.onrender.com" class="qr" alt="QR Code">
-          <div class="qr-caption">https://sarasas-checkin.onrender.com</div>
-        </div>
-        <ul class="note">
-          <li>ใช้เฉพาะนักเรียนที่อยู่ในห้องเรียนเท่านั้น</li>
-          <li>กรอกข้อมูลตามจริง หากตรวจพบความผิดปกติจะถือว่า “ขาด”</li>
-          <li>ระบบจะบันทึก “มาสาย” หากเช็คหลังเวลา <b>08:35</b></li>
-        </ul>
-      </div>
+      <section class="card">
+        <h2>สแกนเช็คชื่อด้วย QR</h2>
+        <img src="https://api.qrserver.com/v1/create-qr-code/?size=200x200&data={{ request.url_root }}" alt="QR Code">
+        <p class="note">
+          • ใช้เฉพาะนักเรียนที่อยู่ในห้องเรียนเท่านั้น <br>
+          • กรอกข้อมูลตามจริง หากตรวจพบความผิดปกติจะถือว่า "ขาด"<br>
+          • ระบบจะบันทึก "มาสาย" หากเช็คหลังเวลา <b>08:35</b>
+        </p>
+      </section>
     </div>
 
-    <!-- Table -->
-    <div class="card table-card" style="margin-top:24px;">
-      <div class="table-head">
-        <div class="card-title">รายการเช็คชื่อล่าสุด (วันที่ {{ today }})</div>
-        <div>
-          <a href="#" class="chip">ดูทั้งหมด</a>
-          <a href="#" class="chip danger">เริ่มวันใหม่</a>
-          <a href="#" class="chip danger">ลบข้อมูลทั้งหมด</a>
-        </div>
+    <!-- ตารางแสดงผล -->
+    <section class="card full">
+      <h2>รายการเช็คชื่อล่าสุด (วันที่ {{ today }})</h2>
+      <div class="actions">
+        <a href="{{ url_for('export_excel') }}" class="btn">ดาวน์โหลด Excel</a>
+        <a href="{{ url_for('delete_today') }}" class="btn danger">เริ่มวันใหม่ (ลบรายการวันนี้)</a>
+        <a href="{{ url_for('delete_all') }}" class="btn danger">ลบข้อมูลทั้งหมด</a>
       </div>
-      <div class="table-responsive">
-        <table class="table">
-          <thead>
+
+      <table>
+        <thead>
+          <tr>
+            <th>รหัสนักเรียน</th>
+            <th>ชื่อ - นามสกุล</th>
+            <th>วันที่</th>
+            <th>เวลา</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% if rows %}
+            {% for row in rows %}
             <tr>
-              <th>รหัสนักเรียน</th>
-              <th>ชื่อ - นามสกุล</th>
-              <th>วันที่</th>
-              <th>เวลา</th>
-              <th>สถานะ</th>
+              <td>{{ row["student_id"] }}</td>
+              <td>{{ row["name"] }}</td>
+              <td>{{ row["date"] }}</td>
+              <td>{{ row["time"] }}</td>
+              <td>{{ row["status"] }}</td>
             </tr>
-          </thead>
-          <tbody>
-            <tr><td colspan="5" class="empty">ยังไม่มีข้อมูล</td></tr>
-          </tbody>
-        </table>
-      </div>
-    </div>
-  </div>
+            {% endfor %}
+          {% else %}
+            <tr><td colspan="5" style="text-align:center;">ยังไม่มีข้อมูล</td></tr>
+          {% endif %}
+        </tbody>
+      </table>
+    </section>
+  </main>
 
-  <!-- Footer -->
-  <div class="footer">
-    © ระบบเช็คชื่อ - โรงเรียนสารสาสน์วิเทศรังสิต
-  </div>
-
+  <footer>
+    <p>© ระบบเช็คชื่อ - โรงเรียนสารสาสน์วิเทศรังสิต</p>
+  </footer>
 </body>
 </html>
