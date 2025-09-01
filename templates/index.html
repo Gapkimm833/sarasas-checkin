@@ -2,139 +2,114 @@
 <html lang="th">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>ระบบเช็คชื่อนักเรียน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-  <style>
-    body {
-      font-family: "Sarabun", sans-serif;
-      background: #f3f7ff;
-      margin: 0;
-      padding: 0;
-    }
-    header {
-      background: #003399;
-      color: white;
-      padding: 1rem;
-      text-align: center;
-    }
-    h1 {
-      margin: 0;
-      font-size: 1.8rem;
-    }
-    .container {
-      max-width: 900px;
-      margin: 2rem auto;
-      background: white;
-      padding: 2rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-    }
-    form {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 1.5rem;
-    }
-    input {
-      padding: 10px;
-      border: 1px solid #ccc;
-      border-radius: 6px;
-      flex: 1;
-    }
-    button {
-      background: #003399;
-      color: white;
-      border: none;
-      border-radius: 6px;
-      padding: 10px 20px;
-      cursor: pointer;
-      transition: 0.3s;
-    }
-    button:hover {
-      background: #001f66;
-    }
-    .actions {
-      margin-bottom: 1.5rem;
-    }
-    .actions a {
-      display: inline-block;
-      margin-right: 10px;
-      padding: 8px 14px;
-      border-radius: 6px;
-      text-decoration: none;
-      color: white;
-      background: #0066cc;
-      transition: 0.3s;
-    }
-    .actions a:hover { background: #004d99; }
-    .actions a.danger { background: #cc0000; }
-    .actions a.danger:hover { background: #990000; }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 1rem;
-    }
-    th, td {
-      border: 1px solid #ddd;
-      padding: 10px;
-      text-align: center;
-    }
-    th {
-      background: #003399;
-      color: white;
-    }
-    tr:nth-child(even) { background: #f9f9f9; }
-    tr:hover { background: #eef3ff; }
-  </style>
 </head>
 <body>
-  <header>
-    <h1>ระบบเช็คชื่อนักเรียน – {{ today }}</h1>
+  <header class="topbar">
+    <div class="container">
+      <div class="logo">
+        <img src="{{ url_for('static', filename='logo.jpg') }}" alt="School Logo" onerror="this.style.display='none'">
+      </div>
+      <div class="actions">
+        <span class="status">สถานะคาบเรียน: <b>เปิดรับเช็คชื่อ</b></span>
+        <a href="{{ url_for('export_excel') }}" class="btn">ดาวน์โหลด Excel</a>
+        <a href="{{ url_for('home') }}" class="btn ghost">รีเฟรชหน้า</a>
+      </div>
+    </div>
   </header>
 
-  <div class="container">
-    <!-- ฟอร์มเพิ่มข้อมูล -->
-    <form method="POST">
-      <input type="text" name="student_id" placeholder="รหัสนักเรียน" required>
-      <input type="text" name="name" placeholder="ชื่อนักเรียน" required>
-      <button type="submit">บันทึก</button>
-    </form>
+  <main class="container grid">
+    <!-- ฟอร์มเช็คชื่อ -->
+    <section class="card">
+      <h2>เช็คชื่อเข้าเรียน</h2>
 
-    <!-- ปุ่มจัดการ -->
-    <div class="actions">
-      <a href="{{ url_for('delete_today') }}" class="danger">ลบข้อมูลวันนี้</a>
-      <a href="{{ url_for('delete_all') }}" class="danger">ลบทั้งหมด</a>
-      <a href="{{ url_for('export_excel') }}">ดาวน์โหลด Excel</a>
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-wrap">
+            {% for cat, msg in messages %}
+              <div class="flash {{ cat }}">{{ msg }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" class="form">
+        <label>รหัสนักเรียน</label>
+        <input type="text" name="student_id" placeholder="เช่น 6512345678" required>
+
+        <label>ชื่อ - นามสกุล</label>
+        <input type="text" name="name" placeholder="เช่น สมชาย ใจดี" required>
+
+        <div class="form-actions">
+          <button type="submit" class="btn primary">บันทึกเช็คชื่อ</button>
+          <button type="reset" class="btn ghost">ล้างฟอร์ม</button>
+        </div>
+      </form>
+    </section>
+
+    <!-- QR Code -->
+    <section class="card">
+      <h2>สแกนเช็คชื่อด้วย QR</h2>
+      <div class="qr-box">
+        <!-- เรียก /qr (ถ้าอยากกำหนดข้อความเองใส่ ?text=...) -->
+        <img src="{{ url_for('qr_code') }}" alt="QR Code" class="qr">
+        <p class="qr-link">
+          <small>{{ request.url_root }}checkin?t={{ token }}</small>
+        </p>
+        <p class="note">
+          • ใช้เฉพาะนักเรียนที่อยู่ในห้องเรียนเท่านั้น<br>
+          • กรอกข้อมูลตามจริง หากตรวจพบความผิดปกติถือว่า “ขาด”<br>
+          • ระบบจะบันทึก <b>“มาสาย”</b> หากเกินเวลา <b>{{ cutoff }}</b>
+        </p>
+      </div>
+    </section>
+  </main>
+
+  <!-- ตาราง -->
+  <section class="container">
+    <div class="card">
+      <h2>รายการเช็คชื่อล่าสุด (วันที่ {{ today }})</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>รหัสนักเรียน</th>
+            <th>ชื่อ - นามสกุล</th>
+            <th>วันที่</th>
+            <th>เวลา</th>
+            <th>สถานะ</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+          <tr>
+            <td>{{ r.student_id }}</td>
+            <td>{{ r.name }}</td>
+            <td>{{ r.date }}</td>
+            <td>{{ r.time }}</td>
+            <td>{{ r.status }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="empty">ยังไม่มีข้อมูล</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+
+      <div class="toolbar">
+        <a href="{{ url_for('delete_today') }}" class="btn danger"
+           onclick="return confirm('ยืนยันลบข้อมูลของ “วันนี้” ?')">เริ่มวันใหม่ (ลบรายการวันนี้)</a>
+        <a href="{{ url_for('delete_all') }}" class="btn danger"
+           onclick="return confirm('ยืนยันลบข้อมูล “ทั้งหมด” ?')">ลบข้อมูลทั้งหมด</a>
+      </div>
     </div>
+  </section>
 
-    <!-- ตารางแสดงข้อมูล -->
-    <table>
-      <thead>
-        <tr>
-          <th>รหัสนักเรียน</th>
-          <th>ชื่อ</th>
-          <th>วันที่</th>
-          <th>เวลา</th>
-          <th>สถานะ</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for r in rows %}
-        <tr>
-          <td>{{ r.student_id }}</td>
-          <td>{{ r.name }}</td>
-          <td>{{ r.date }}</td>
-          <td>{{ r.time }}</td>
-          <td>{{ r.status }}</td>
-        </tr>
-        {% else %}
-        <tr>
-          <td colspan="5">ยังไม่มีข้อมูลสำหรับวันนี้</td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
+  <footer class="footer">
+    © ระบบเช็คชื่อ • {{ today }}
+  </footer>
 </body>
 </html>
