@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>บันทึกผลการเรียน</title>
+  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header class="topbar">
+    <div class="container">
+      <div class="brand">บันทึกผลการเรียน • {{ today }}</div>
+      <div class="actions">
+        <a href="{{ url_for('home') }}" class="btn ghost">กลับหน้าเช็คชื่อ</a>
+
+        {% if is_admin %}
+          <a href="{{ url_for('export_grades') }}" class="btn">ดาวน์โหลด Excel (ผลการเรียน)</a>
+          <a href="{{ url_for('admin_logout') }}" class="btn ghost">ออกจากระบบครู</a>
+        {% else %}
+          <form action="{{ url_for('admin_code') }}" method="post" class="admin-inline">
+            <input type="password" name="code" placeholder="รหัสครู" required>
+            <input type="hidden" name="next" value="{{ url_for('export_grades') }}">
+            <button type="submit" class="btn">ยืนยัน</button>
+          </form>
+        {% endif %}
+      </div>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="card">
+      <h2>กรอกผลการเรียน</h2>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+          <div class="flash-wrap">
+            {% for cat, msg in messages %}
+              <div class="flash {{ cat }}">{{ msg }}</div>
+            {% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <form method="POST" class="form">
+        <label>รหัสนักเรียน (ไม่บังคับ)</label>
+        <input type="text" name="student_id" placeholder="เช่น 6512345678">
+
+        <label>ชื่อ - สกุล</label>
+        <input type="text" name="name" placeholder="เช่น สมชาย ใจดี" required>
+
+        <label>ระดับชั้น</label>
+        <input type="text" name="level" placeholder="เช่น ม.3/2 หรือ ป.6/1" required>
+
+        <label>ชื่อวิชา</label>
+        <input type="text" name="subject_name" placeholder="เช่น คณิตศาสตร์" required>
+
+        <label>รหัสวิชา</label>
+        <input type="text" name="subject_code" placeholder="เช่น MTH301" required>
+
+        <label>ผลการเรียน</label>
+        <select name="result" required>
+          <option value="">-- เลือกผลการเรียน --</option>
+          <option value="0">0</option>
+          <option value="ร">ร</option>
+          </select>
+
+        <div class="form-actions">
+          <button type="submit" class="btn primary">บันทึกผลการเรียน</button>
+          <a href="{{ url_for('grades_delete_today') }}" class="btn danger"
+             onclick="return confirm('ยืนยันลบผลการเรียนของ “วันนี้” ?')">ลบของวันนี้</a>
+          <a href="{{ url_for('grades_delete_all') }}" class="btn danger"
+             onclick="return confirm('ยืนยันลบผลการเรียน “ทั้งหมด” ?')">ลบทั้งหมด</a>
+        </div>
+      </form>
+    </section>
+
+    <section class="card" style="margin-top:16px;">
+      <h2>รายการผลการเรียน (วันนี้)</h2>
+      <table class="table">
+        <thead>
+          <tr>
+            <th>รหัสนักเรียน</th>
+            <th>ชื่อ - สกุล</th>
+            <th>ระดับชั้น</th>
+            <th>ชื่อวิชา</th>
+            <th>รหัสวิชา</th>
+            <th>ผลการเรียน</th>
+            <th>เวลา</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for r in rows %}
+            <tr>
+              <td>{{ r.student_id or '-' }}</td>
+              <td>{{ r.name }}</td>
+              <td>{{ r.level }}</td>
+              <td>{{ r.subject_name }}</td>
+              <td>{{ r.subject_code }}</td>
+              <td>{{ r.result }}</td>
+              <td>{{ r.time }}</td>
+            </tr>
+          {% else %}
+            <tr><td colspan="7" class="empty">ยังไม่มีข้อมูลของวันนี้</td></tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </section>
+  </main>
+
+  <footer class="footer">© ระบบบันทึกผลการเรียน • {{ today }}</footer>
+</body>
+</html>

@@ -1,16 +1,9 @@
-# Python
-__pycache__/
+﻿__pycache__/
 *.pyc
-
-# Local venv
 .venv/
 venv/
-
-# Databases & exports
 *.db
 *.sqlite
 *.xlsx
-
-# OS junk
 .DS_Store
 Thumbs.db

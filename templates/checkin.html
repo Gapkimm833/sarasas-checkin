@@ -1,57 +1,41 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>เช็คชื่อเข้าเรียน</title>
-  <link href="https://fonts.googleapis.com/css2?family=Kanit:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    body{font-family:'Kanit',sans-serif;background:#f4f7ff;margin:0}
-    .wrap{max-width:520px;margin:24px auto;background:#fff;border-radius:14px;padding:20px;
-          box-shadow:0 8px 22px rgba(0,0,0,.08)}
-    h1{font-size:1.4rem;margin:0 0 10px;color:#0a2e6c}
-    .muted{color:#666;font-size:.95rem;margin-bottom:12px}
-    label{display:block;margin:.6rem 0 .3rem}
-    input{width:100%;padding:12px;border:1px solid #cfd6e6;border-radius:10px}
-    .btn{display:inline-block;padding:12px 16px;border-radius:10px;border:none;cursor:pointer}
-    .primary{background:#0b57d0;color:#fff}
-    .ghost{background:#eef3ff}
-    .danger{background:#d32f2f;color:#fff}
-    .row{display:flex;gap:10px;margin-top:10px}
-    .ok{padding:12px;border-radius:10px;background:#e8f5e9;color:#1b5e20;margin:12px 0}
-    .err{padding:12px;border-radius:10px;background:#fdecea;color:#b71c1c;margin:12px 0}
-    .center{text-align:center}
-  </style>
-</head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เช็คชื่อเข้าเรียน</title>
+<style>
+body{font-family:'Kanit',sans-serif;background:#f4f7ff;margin:0}
+.wrap{max-width:520px;margin:24px auto;background:#fff;border-radius:14px;padding:20px;box-shadow:0 8px 22px rgba(0,0,0,.08)}
+h1{font-size:1.3rem;margin:0 0 10px;color:#0a2e6c}
+label{display:block;margin:.6rem 0 .3rem}
+input{width:100%;padding:12px;border:1px solid #cfd6e6;border-radius:10px}
+.btn{margin-top:12px;padding:12px 16px;border-radius:10px;border:none;background:#0b57d0;color:#fff}
+.ok{padding:12px;border-radius:10px;background:#e8f5e9;color:#1b5e20;margin:12px 0}
+.err{padding:12px;border-radius:10px;background:#fdecea;color:#b71c1c;margin:12px 0}
+.note{color:#666;font-size:.9rem;margin-bottom:8px}
+</style>
 <body>
   <div class="wrap">
     <h1>เช็คชื่อเข้าเรียน</h1>
-    <div class="muted">เวลาตัด “มาสาย” : {{ cutoff }}</div>
+    <div class="note">เวลาตัด “มาสาย” : {{ cutoff }}</div>
 
     {% if ok is sameas false %}
       <div class="err">{{ msg }}</div>
     {% elif ok is sameas true %}
       <div class="ok">
-        บันทึกสำเร็จ!<br>
-        รหัส: <b>{{ sid }}</b> • ชื่อ: <b>{{ name }}</b><br>
-        เวลา: <b>{{ time }}</b> • สถานะ: <b>{{ status }}</b>
+        บันทึกสำเร็จ! รหัส <b>{{ sid }}</b> เวลา <b>{{ time }}</b> สถานะ <b>{{ status }}</b>
       </div>
-      <div class="center">
-        <a class="btn ghost" href="{{ url_for('checkin', t=today_token) }}">เช็คชื่ออีกครั้ง</a>
-      </div>
+      <a class="btn" href="{{ url_for('checkin', t=today_token) }}">เช็คชื่ออีกครั้ง</a>
     {% endif %}
 
     {% if ok is not sameas true %}
-    <form method="POST">
+    <form method="post">
       <input type="hidden" name="t" value="{{ token }}">
       <label>รหัสนักเรียน</label>
       <input name="student_id" placeholder="เช่น 6512345678" required>
       <label>ชื่อ - นามสกุล</label>
       <input name="name" placeholder="เช่น สมชาย ใจดี" required>
-      <div class="row">
-        <button class="btn primary" type="submit">บันทึกเช็คชื่อ</button>
-        <a class="btn ghost" href="{{ url_for('checkin', t=today_token) }}">ล้างฟอร์ม</a>
-      </div>
+      <button class="btn" type="submit">บันทึกเช็คชื่อ</button>
     </form>
     {% endif %}
   </div>

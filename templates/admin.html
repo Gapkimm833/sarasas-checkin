@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="th">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>เข้าสู่ระบบครู</title>
+<style>
+body{font-family:'Kanit',sans-serif;background:#f6f8ff;margin:0}
+.wrap{max-width:420px;margin:40px auto;background:#fff;padding:24px;border-radius:14px;box-shadow:0 8px 24px rgba(0,0,0,.08)}
+h1{margin:0 0 12px;color:#0a2e6c}
+label{display:block;margin:.6rem 0 .3rem}
+input{width:100%;padding:12px;border:1px solid #cfd6e6;border-radius:10px}
+.btn{margin-top:12px;padding:12px 16px;border-radius:10px;border:none;background:#0b57d0;color:#fff;cursor:pointer}
+.msg{margin:10px 0;color:#b71c1c}
+a{color:#0b57d0;text-decoration:none}
+</style>
+<body>
+  <div class="wrap">
+    <h1>เข้าสู่ระบบครู</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% for cat, msg in messages %}<div class="msg">{{ msg }}</div>{% endfor %}
+    {% endwith %}
+    <form method="post" action="{{ url_for('admin_code') }}">
+      <input type="hidden" name="next" value="{{ request.args.get('next', url_for('home')) }}">
+      <label>รหัสครู</label>
+      <input type="password" name="code" placeholder="เช่น beer1501" required>
+      <button class="btn" type="submit">ยืนยัน</button>
+    </form>
+    <p><a href="{{ url_for('home') }}">กลับหน้าแรก</a></p>
+  </div>
+</body>
+</html>
