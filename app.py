@@ -34,11 +34,12 @@ def get_conn():
     conn.row_factory = sqlite3.Row
     return conn
 
+
 def init_db():
     conn = get_conn()
     cur = conn.cursor()
 
-    # --- attendance (เดิม) ---
+    # --- attendance ---
     cur.execute("""
         CREATE TABLE IF NOT EXISTS attendance (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -57,25 +58,26 @@ def init_db():
     cur.execute("""
         CREATE TABLE IF NOT EXISTS grades (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
-            student_id TEXT,
-            name TEXT NOT NULL,
-            level TEXT NOT NULL,          -- ระดับชั้น
-            subject_name TEXT NOT NULL,   -- ชื่อวิชา
-            subject_code TEXT NOT NULL,   -- รหัสวิชา
-            result TEXT NOT NULL,         -- 0/ร/มส
+            student_id TEXT,               -- เก็บ 'ชื่อครูผู้สอน' (ไม่บังคับ)
+            name TEXT NOT NULL,            -- ชื่อ-สกุลนักเรียน
+            level TEXT NOT NULL,           -- ระดับชั้น
+            subject_name TEXT NOT NULL,    -- ชื่อวิชา
+            subject_code TEXT NOT NULL,    -- รหัสวิชา
+            result TEXT NOT NULL,          -- ผล: 0/ร  (มส จะไม่รับจากฟอร์มแล้ว)
             date TEXT NOT NULL,
             time TEXT NOT NULL,
-            CHECK (result in ('0','ร','มส'))
+            CHECK (result in ('0','ร','มส')) -- คงไว้เพื่อเข้ากันได้กับ DB เก่า
         );
     """)
     cur.execute("""CREATE INDEX IF NOT EXISTS idx_grades_date ON grades(date);""")
     cur.execute("""CREATE INDEX IF NOT EXISTS idx_grades_sid  ON grades(student_id);""")
     cur.execute("""CREATE INDEX IF NOT EXISTS idx_grades_code ON grades(subject_code);""")
 
-    # กัน “กดซ้ำวิชาเดิมในวันเดียวกัน” (student_id อาจว่าง ให้ใช้ COALESCE)
+    # ปรับ unique: กันซ้ำตาม "นักเรียน+ระดับชั้น+รหัสวิชา+วัน" (ไม่ผูกกับครู)
+    cur.execute("DROP INDEX IF EXISTS uq_grades_sid_code_day;")
     cur.execute("""
-        CREATE UNIQUE INDEX IF NOT EXISTS uq_grades_sid_code_day
-        ON grades(COALESCE(student_id,''), subject_code, date);
+        CREATE UNIQUE INDEX IF NOT EXISTS uq_grades_student_subj_day
+        ON grades(name, level, subject_code, date);
     """)
 
     conn.commit()
@@ -92,6 +94,7 @@ def today_token(): return datetime.now().strftime("%Y%m%d")
 def calc_status(now: datetime) -> str:
     return "มาสาย" if (now.hour, now.minute) > (CUTOFF_H, CUTOFF_M) else "มาเรียน"
 
+
 def _make_qr_png(data: str) -> bytes:
     qr = qrcode.QRCode(version=1, error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=10, border=2)
     qr.add_data(data); qr.make(fit=True)
@@ -107,14 +110,14 @@ def inject_is_admin():
 
 
 # ===== WEB: เช็คชื่อ =====
-@app.route("/", methods=["GET","POST"])
+@app.route("/", methods=["GET", "POST"])
 def home():
     conn = get_conn(); cur = conn.cursor()
     t = today_str()
 
     if request.method == "POST":
-        sid = request.form.get("student_id","").strip()
-        name = request.form.get("name","").strip()
+        sid = request.form.get("student_id", "").strip()
+        name = request.form.get("name", "").strip()
         if sid and name:
             now = datetime.now()
             cur.execute(
@@ -129,6 +132,7 @@ def home():
     rows = cur.fetchall(); conn.close()
     return render_template("index.html", rows=rows, today=t, token=today_token(), cutoff=CUT_OFF)
 
+
 @app.route("/delete_today")
 def delete_today():
     conn = get_conn(); cur = conn.cursor()
@@ -136,6 +140,7 @@ def delete_today():
     conn.commit(); conn.close()
     flash("ลบข้อมูลของวันนี้แล้ว", "success")
     return redirect(url_for("home"))
+
 
 @app.route("/delete_all")
 def delete_all():
@@ -146,7 +151,7 @@ def delete_all():
     return redirect(url_for("home"))
 
 
-# ===== ADMIN (พิมพ์รหัสบนหน้าแรก) =====
+# ===== ADMIN (พิมพ์รหัสบนหน้าเว็บ) =====
 @app.route("/admin_code", methods=["POST"])
 def admin_code():
     code = request.form.get("code", "")
@@ -158,6 +163,7 @@ def admin_code():
     flash("รหัสครูไม่ถูกต้อง", "danger")
     return redirect(url_for("home"))
 
+
 @app.route("/logout")
 def admin_logout():
     session.pop("is_admin", None)
@@ -165,7 +171,7 @@ def admin_logout():
     return redirect(url_for("home"))
 
 
-# ===== EXPORT (ADMIN ONLY) =====
+# ===== EXPORT เช็คชื่อ (ADMIN ONLY) =====
 @app.route("/export_excel")
 def export_excel():
     if not session.get("is_admin"):
@@ -194,9 +200,10 @@ def qr_code():
     resp.headers["Cache-Control"] = "no-store, max-age=0"
     return resp
 
-@app.route("/checkin", methods=["GET","POST"])
+
+@app.route("/checkin", methods=["GET", "POST"])
 def checkin():
-    token = request.values.get("t","")
+    token = request.values.get("t", "")
     today_tok = today_token()
     token_valid = (token == today_tok)
 
@@ -204,8 +211,8 @@ def checkin():
         if not token_valid:
             return render_template("checkin.html", ok=False, msg="QR หมดอายุหรือไม่ถูกต้อง",
                                    cutoff=CUT_OFF, today_token=today_tok, token=token)
-        sid = request.form.get("student_id","").strip()
-        name = request.form.get("name","").strip()
+        sid = request.form.get("student_id", "").strip()
+        name = request.form.get("name", "").strip()
         now = datetime.now()
         conn = get_conn(); cur = conn.cursor()
         cur.execute(
@@ -223,32 +230,47 @@ def checkin():
                            cutoff=CUT_OFF, today_token=today_tok, token=token)
 
 
-# ===== GRADES (ถ้าคุณใช้หน้า /grades) =====
-@app.route("/grades", methods=["GET","POST"])
+# ===== GRADES (บันทึกผลการเรียน) =====
+@app.route("/grades", methods=["GET", "POST"])
 def grades():
     conn = get_conn(); cur = conn.cursor()
     t = today_str()
 
     if request.method == "POST":
-        sid = request.form.get("student_id","").strip()
-        name = request.form.get("name","").strip()
-        level = request.form.get("level","").strip()
-        sname = request.form.get("subject_name","").strip()
-        scode = request.form.get("subject_code","").strip()
-        result = request.form.get("result","").strip()  # 0/ร/มส
-        if name and level and sname and scode and result in ("0","ร"):
+        # ช่องแรกเปลี่ยนเป็น "ชื่อครูผู้สอน" (ไม่บังคับ) เก็บลงคอลัมน์ student_id
+        teacher = request.form.get("teacher", "").strip()
+        sid = teacher
+
+        name  = request.form.get("name", "").strip()
+        level = request.form.get("level", "").strip()
+        sname = request.form.get("subject_name", "").strip()
+        scode = request.form.get("subject_code", "").strip().upper()
+        result = request.form.get("result", "").strip()  # 0/ร
+
+        if name and level and sname and scode and result in ("0", "ร"):
             now = datetime.now()
-            cur.execute(
-                "INSERT INTO grades (student_id,name,level,subject_name,subject_code,result,date,time) VALUES (?,?,?,?,?,?,?,?)",
-                (sid or None, name, level, sname, scode, result, now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S"))
-            )
-            conn.commit()
-            flash("บันทึกผลการเรียนสำเร็จ", "success")
+            try:
+                cur.execute(
+                    """
+                    INSERT INTO grades
+                    (student_id,name,level,subject_name,subject_code,result,date,time)
+                    VALUES (?,?,?,?,?,?,?,?)
+                    """,
+                    (
+                        sid or None, name, level, sname, scode, result,
+                        now.strftime("%Y-%m-%d"), now.strftime("%H:%M:%S")
+                    )
+                )
+                conn.commit()
+                flash("บันทึกผลการเรียนสำเร็จ", "success")
+            except sqlite3.IntegrityError:
+                # ชน unique: นักเรียน+ระดับชั้น+รหัสวิชา+วัน ซ้ำ
+                flash("บันทึกรายการนี้ไปแล้ว (วิชาเดิมในวันเดียวกันสำหรับนักเรียนคนนี้)", "warning")
         else:
-            flash("กรอกข้อมูลไม่ครบ หรือผลการเรียนต้องเป็น 0/ร/มส", "danger")
+            flash("กรอกข้อมูลไม่ครบ หรือผลการเรียนต้องเป็น 0/ร", "danger")
 
     cur.execute("""
-        SELECT student_id,name,level,subject_name,subject_code,result,date,time
+        SELECT student_id,name,level,subject_name,subject_code,result,time
         FROM grades
         WHERE date=?
         ORDER BY time DESC
@@ -256,6 +278,8 @@ def grades():
     rows = cur.fetchall(); conn.close()
     return render_template("grades.html", rows=rows, today=t)
 
+
+# ===== EXPORT GRADES (ADMIN ONLY) =====
 @app.route("/export_grades")
 def export_grades():
     if not session.get("is_admin"):
@@ -272,6 +296,7 @@ def export_grades():
     except Exception as e:
         return abort(500, description=str(e))
 
+
 @app.route("/grades_delete_today")
 def grades_delete_today():
     conn = get_conn(); cur = conn.cursor()
@@ -279,6 +304,7 @@ def grades_delete_today():
     conn.commit(); conn.close()
     flash("ลบผลการเรียนของวันนี้แล้ว", "success")
     return redirect(url_for("grades"))
+
 
 @app.route("/grades_delete_all")
 def grades_delete_all():
